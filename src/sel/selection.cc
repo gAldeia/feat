@@ -34,6 +34,8 @@ void Selection::set_operator()
         pselector = std::make_shared<Lexicase>(survival); 
     else if (this->type == "fair_lexicase")
         pselector = std::make_shared<FairLexicase>(survival);
+    else if (this->type == "pareto_lexicase")
+        pselector = std::make_shared<ParetoLexicase>(survival);
     else if (this->type == "nsga2")
         pselector = std::make_shared<NSGA2>(survival);
     else if (this->type == "tournament")
