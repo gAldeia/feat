@@ -34,7 +34,7 @@ vector<size_t> Lexicase::select(Population& pop,
   
     // if output is continuous, use epsilon lexicase            
     if (!params.classification || params.scorer_.compare("log")==0 
-            || params.scorer_.compare("multi_log")==0)
+    ||  params.scorer_.compare("multi_log")==0)
     {
         // for each sample, calculate epsilon
         for (int i = 0; i<epsilon.size(); ++i)
@@ -121,9 +121,7 @@ vector<size_t> Lexicase::select(Population& pop,
           }
           else
             pool = winner;    // reduce pool to remaining individuals
-      
         }       
-    
     
         assert(winner.size()>0);
         //if more than one winner, pick randomly
