@@ -8,9 +8,13 @@ license: GNU/GPL v3
 
 #include "selection_operator.h"
 
+
 namespace FT{
 namespace Sel{
-
+    enum class eDominance : int { Left = -1,
+                                  None  = 0,
+                                  Right = 1};
+                                    
     ////////////////////////////////////////////////////////////// Declarations
     /*!
      * @class ParetoLexicase
@@ -30,6 +34,22 @@ namespace Sel{
         vector<size_t> survive(Population& pop,  
                 const Parameters& params, const Data& d); 
 
+        //< the Pareto front (just the rank 1)
+        vector<size_t> front;     
+        
+        private:
+
+            //< dominance comparison with epison relaxation
+            auto epsi_dominated(vector<float> const &lhs, 
+                vector<float> const &rhs, vector<float> const &eps)
+                const -> eDominance;
+
+            //< pareto front of rank 0 using Fast non-dominated sorting, based
+            // on the epsilon for test case t (eps_t) and epsilon for
+            // population complexity (eps_c)
+            void fast_eNDS(
+                vector<Individual>& individuals, vector<size_t>& pool,
+                size_t case_id, vector<float> eps);  
     };
 }
 }
