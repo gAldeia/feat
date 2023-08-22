@@ -475,9 +475,9 @@ float Feat::get_fb(){ return params.feedback; }
 ///return best model
 string Feat::get_representation(){ return best_ind.get_eqn();}
 
-string Feat::get_eqn(bool sort){ return this->get_eqn(sort, this->best_ind); };
+string Feat::get_eqn(bool sort){ return this->get_ind_eqn(sort, this->best_ind); };
 
-string Feat::get_eqn(bool sort, Individual& ind) 
+string Feat::get_ind_eqn(bool sort, Individual& ind) 
 {   
     vector<string> features = ind.get_features();
     vector<float> weights = ind.ml->get_weights();
@@ -502,10 +502,11 @@ string Feat::get_eqn(bool sort, Individual& ind)
 
     string output;
     output +=  to_string(offset);
-
     if (weights.size() > 0)
-        if (weights.at(0) > 0)
-            output+= "+";
+    {
+        if (weights.at(order.at(0)) > 0)
+            output += "+";
+    }
     int i = 0;
     for (const auto& o : order)
     {
@@ -514,7 +515,7 @@ string Feat::get_eqn(bool sort, Individual& ind)
         output += features.at(o);
         if (i < order.size()-1)
         {
-            if (order.at(i+1) > 0)
+            if (weights.at(order.at(i+1)) > 0)
                 output+= "+";
         }
         ++i;
@@ -838,7 +839,7 @@ void Feat::simplify_model(DataRef& d, Individual& ind)
     if (tmp_ind.size() < ind.size())
     {
         ind = tmp_ind;
-        logger.log("new model:" + this->get_eqn(false, ind),2);
+        logger.log("new model:" + this->get_ind_eqn(false, ind),2);
     }
 
     ///////////////////
@@ -905,7 +906,7 @@ void Feat::simplify_model(DataRef& d, Individual& ind)
             + to_string(starting_size - end_size)
             + " nodes\n=========\n", 2);
     if (end_size < starting_size)
-        logger.log("new model:" + this->get_eqn(false, ind),2);
+        logger.log("new model:" + this->get_ind_eqn(false, ind),2);
 
     /////////////////
     // prune subtrees
@@ -1202,6 +1203,10 @@ VectorXf Feat::predict_archive(int id, MatrixXf& X, LongData& Z)
     Data tmp_data(X,empty_y,Z);
 
     /* cout << "individual prediction id " << id << "\n"; */
+    if (id == best_ind.id)
+    {
+        return best_ind.predict_vector(tmp_data);
+    }
     for (int i = 0; i < this->archive.individuals.size(); ++i)
     {
         Individual& ind = this->archive.individuals.at(i);
@@ -1210,9 +1215,17 @@ VectorXf Feat::predict_archive(int id, MatrixXf& X, LongData& Z)
             return ind.predict_vector(tmp_data);
 
     }
+    for (int i = 0; i < this->pop.individuals.size(); ++i)
+    {
+        Individual& ind = this->pop.individuals.at(i);
+
+        if (id == ind.id)
+            return ind.predict_vector(tmp_data);
+
+    }
 
     THROW_INVALID_ARGUMENT("Could not find id = "
-            + to_string(id) + "in archive.");
+            + to_string(id) + "in archive or population.");
     return VectorXf();
 }
 
@@ -1461,7 +1474,7 @@ void Feat::print_stats(std::ofstream& log, float fraction)
         {
             std::string lim_model;
 
-            std::string model = this->get_eqn(false, archive.individuals[i]);
+            std::string model = this->get_ind_eqn(false, archive.individuals[i]);
             /* std::string model = archive.individuals[i].get_eqn(); */
             for (unsigned j = 0; j< std::min(model.size(),size_t(60)); ++j)
             {
@@ -1492,7 +1505,7 @@ void Feat::print_stats(std::ofstream& log, float fraction)
         for (unsigned j = 0; j < std::min(num_models,unsigned(f.size())); ++j)
         {     
             std::string lim_model;
-            std::string model = this->get_eqn(false,pop.individuals[f[j]]);
+            std::string model = this->get_ind_eqn(false,pop.individuals[f[j]]);
             /* std::string model = this->pop.individuals[f[j]].get_eqn(); */
             for (unsigned j = 0; j< std::min(model.size(),size_t(60)); ++j)
                 lim_model.push_back(model.at(j));
