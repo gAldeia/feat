@@ -171,20 +171,21 @@ auto ParetoLexicase::epsi_dominated(vector<float> const &lhs,
     auto rhs_it = rhs.begin();
     auto eps_it = eps.begin();
         
-    auto cmp = []<bool CheckNan = false, typename T>(T a, T b, T eps)
+    auto epsi_less = []<bool CheckNan = false, typename T>(T a, T b, T eps)
     {
         if (CheckNan) {
             if (std::isnan(a)) return false;
             if (std::isnan(b)) return true;
         }
-        return a < b && b - a > eps;
+        // needs to be smaller but not equal. equalty is used considering epsilon 
+        return a < b and not np.abs(a-b) <= e
     };
 
     for (; lhs_it!=lhs.end() && rhs_it!=rhs.end() && eps_it!=eps.end(); 
         ++lhs_it, ++rhs_it, ++eps_it)
     {
-        better |= cmp(*lhs_it, *rhs_it, *eps_it);
-        worse  |= cmp(*rhs_it, *lhs_it, *eps_it);
+        better |= epsi_less(*lhs_it, *rhs_it, *eps_it);
+        worse  |= epsi_less(*rhs_it, *lhs_it, *eps_it);
     }
 
     if (better && !worse) return eDominance::Left;
@@ -192,7 +193,7 @@ auto ParetoLexicase::epsi_dominated(vector<float> const &lhs,
 
     return eDominance::None;
 
-    // to use
+    // example to verify the result in a logical statement
     // bool accept = d!=Dominance::None;
 }
 
