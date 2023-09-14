@@ -73,6 +73,10 @@ vector<size_t> ParetoLexicase::select(Population& pop,
     // selected individuals
     vector<size_t> selected(P,0);
     
+    // tracking how many test cases each individual took before being selected
+    n_cases_used.resize(P);
+    std::iota(n_cases_used.begin(), n_cases_used.end(), 0);
+    
     // selection loop
     #pragma omp parallel for 
     for (unsigned int i = 0; i<P; ++i)
@@ -110,33 +114,34 @@ vector<size_t> ParetoLexicase::select(Population& pop,
         unsigned int h = 0;   // case count, index used in cases[h]
 
         while(pass){    // main loop
+            winner.resize(0);   // winners     
 
-        winner.resize(0);   // winners     
+            // fast non-dominated epsilon-sort
+            vector<float> eps{epsilon[cases[h]], complexity_epsilon};
+            fast_eNDS(pop.individuals, pool, cases[h], eps);
 
-        // fast non-dominated epsilon-sort
-        vector<float> eps{epsilon[cases[h]], complexity_epsilon};
-        fast_eNDS(pop.individuals, pool, cases[h], eps);
-
-        // get winners based on relative index used in pool
-        winner.reserve(winner.size() + distance( front.begin(), front.end()));
-        winner.insert(winner.end(), front.begin(), front.end());
-        
-        ++h; // next case 
-        // only keep going if needed
-        pass = (winner.size()>1 && h<cases.size()); 
-        
-        if(winner.size() == 0)
-        {
-            if(h >= cases.size())
-                winner.push_back(r.random_choice(pool));
+            // get winners based on relative index used in pool
+            winner.reserve(winner.size() + distance( front.begin(), front.end()));
+            winner.insert(winner.end(), front.begin(), front.end());
+            
+            ++h; // next case 
+            // only keep going if needed
+            pass = (winner.size()>1 && h<cases.size()); 
+            
+            if(winner.size() == 0)
+            {
+                if(h >= cases.size())
+                    winner.push_back(r.random_choice(pool));
+                else
+                    pass = true;
+            }
             else
-                pass = true;
-        }
-        else
-            pool = winner;    // reduce pool to remaining individuals
+                pool = winner;    // reduce pool to remaining individuals
         }       
-    
+
         assert(winner.size()>0);
+
+        n_cases_used[i] = h;
 
         //if more than one winner, pick randomly
         selected.at(i) = r.random_choice(winner);   
@@ -178,7 +183,7 @@ auto ParetoLexicase::epsi_dominated(vector<float> const &lhs,
             if (std::isnan(b)) return true;
         }
         // needs to be smaller but not equal. equalty is used considering epsilon 
-        return a < b and not np.abs(a-b) <= e
+        return a < b and not abs(a-b) <= eps;
     };
 
     for (; lhs_it!=lhs.end() && rhs_it!=rhs.end() && eps_it!=eps.end(); 
