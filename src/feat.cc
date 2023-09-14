@@ -1379,6 +1379,26 @@ void Feat::calculate_stats(const DataRef& d)
         Dims(i) = p.get_dim(); 
         ++i;
     }
+
+    // number of test cases in lexicase selection
+    VectorXf n_cases_used(this->pop.size());
+
+    vector<size_t> v;
+    v.resize(this->pop.size());
+    std::iota(v.begin(), v.end(), 0);
+
+    // TODO: maybe a getter function to get pselector?
+    if (this->selector.get_type() == "pareto_lexicase")
+        v = dynamic_cast<ParetoLexicase*>(this->selector.pselector.get())->n_cases_used;
+    else if (this->selector.get_type() == "lexicase")
+        v = dynamic_cast<Lexicase*>(this->selector.pselector.get())->n_cases_used;
+    
+    for (size_t i=0; i<this->pop.size(); i++)
+        n_cases_used(i) = v.at(i);
+
+    float min_tests_used = n_cases_used.minCoeff();
+    float med_tests_used = median(n_cases_used.array());  
+    float max_tests_used = n_cases_used.maxCoeff();  
     
     /* unsigned med_size = median(Sizes); */ 
     unsigned med_complexity = median(Complexities);            
@@ -1414,7 +1434,10 @@ void Feat::calculate_stats(const DataRef& d)
                  med_size,
                  med_complexity,
                  med_num_params,
-                 med_dim);
+                 med_dim,
+                 min_tests_used,
+                 med_tests_used,
+                 max_tests_used);
 }
 
 void Feat::print_stats(std::ofstream& log, float fraction)
@@ -1511,10 +1534,10 @@ void Feat::print_stats(std::ofstream& log, float fraction)
                 lim_model.push_back(model.at(j));
             if (lim_model.size()==60) 
                 lim_model += "...";
-            std::cout << pop.individuals[f[j]].rank              << "\t" 
-                      << pop.individuals[f[j]].fitness              << "\t" 
-                      << pop.individuals[f[j]].fitness_v              << "\t" 
-                      << pop.individuals[f[j]].get_complexity()              << "\t" ;
+            std::cout << pop.individuals[f[j]].rank             << "\t" 
+                      << pop.individuals[f[j]].fitness          << "\t" 
+                      << pop.individuals[f[j]].fitness_v        << "\t" 
+                      << pop.individuals[f[j]].get_complexity() << "\t" ;
             cout << "\t" << lim_model << "\n";  
         }
     }
@@ -1536,18 +1559,24 @@ void Feat::print_stats(std::ofstream& log, float fraction)
                 << "med_size"       << sep 
                 << "med_complexity" << sep 
                 << "med_num_params" << sep
+                << "min_tests_used" << sep
+                << "med_tests_used" << sep
+                << "max_tests_used" << sep
                 << "med_dim\n";
         }
 
-        log << params.current_gen  << sep
-            << timer.Elapsed().count() << sep
-            << stats.min_loss.back()          << sep
-            << this->min_loss_v        << sep
-            << stats.med_loss.back()  << sep
-            << stats.med_loss_v.back() << sep
-            << stats.med_size.back()   << sep
+        log << params.current_gen          << sep
+            << timer.Elapsed().count()     << sep
+            << stats.min_loss.back()       << sep
+            << this->min_loss_v            << sep
+            << stats.med_loss.back()       << sep
+            << stats.med_loss_v.back()     << sep
+            << stats.med_size.back()       << sep
             << stats.med_complexity.back() << sep
             << stats.med_num_params.back() << sep
+            << stats.min_tests_used.back() << sep
+            << stats.med_tests_used.back() << sep
+            << stats.max_tests_used.back() << sep
             << stats.med_dim.back()        << "\n"; 
     } 
 }

@@ -280,7 +280,10 @@ void Log_Stats::update(int index,
                        unsigned md_size,
                        unsigned md_complexity,
                        unsigned md_num_params,
-                       unsigned md_dim)
+                       unsigned md_dim,
+                       float min_tests,
+                       float md_tests,
+                       float max_tests)
 {
     generation.push_back(index+1);
     time.push_back(timer_count);
