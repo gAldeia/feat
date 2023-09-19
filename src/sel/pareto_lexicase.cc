@@ -183,7 +183,7 @@ auto ParetoLexicase::epsi_dominated(vector<float> const &lhs,
             if (std::isnan(b)) return true;
         }
         // needs to be smaller but not equal. equalty is used considering epsilon 
-        return a < b and not abs(a-b) <= eps;
+        return a + eps < b;
     };
 
     for (; lhs_it!=lhs.end() && rhs_it!=rhs.end() && eps_it!=eps.end(); 
@@ -196,10 +196,11 @@ auto ParetoLexicase::epsi_dominated(vector<float> const &lhs,
     if (better && !worse) return eDominance::Left;
     if (worse && !better) return eDominance::Right;
 
+    // not better and not worse -> equal (difference is within eps range)
     return eDominance::None;
 
     // example to verify the result in a logical statement
-    // bool accept = d!=Dominance::None;
+    // bool accept = d != Dominance::None;
 }
 
 void ParetoLexicase::fast_eNDS(
