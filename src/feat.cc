@@ -725,6 +725,9 @@ void Feat::run_generation(unsigned int g,
     else if(params.verbosity == 1)
         printProgress(fraction);
     
+    if (!logfile.empty())
+        log_stats(log);
+
     if (save_pop > 1)
         pop.save(this->logfile+".pop.gen" + 
                     to_string(params.current_gen) + ".json");
@@ -1544,43 +1547,43 @@ void Feat::print_stats(std::ofstream& log, float fraction)
     }
    
     std::cout <<"\n\n";
-    
-    if (!logfile.empty())
-    {
-        // print stats in tabular format
-        string sep = ",";
-        if (params.current_gen == 0) // print header
-        {
-            log << "generation"     << sep
-                << "time"           << sep
-                << "min_loss"       << sep 
-                << "min_loss_val"   << sep 
-                << "med_loss"       << sep 
-                << "med_loss_val"   << sep 
-                << "med_size"       << sep 
-                << "med_complexity" << sep 
-                << "med_num_params" << sep
-                << "min_tests_used" << sep
-                << "med_tests_used" << sep
-                << "max_tests_used" << sep
-                << "med_dim"        << "\n";
-        }
-
-        log << params.current_gen          << sep
-            << timer.Elapsed().count()     << sep
-            << stats.min_loss.back()       << sep
-            << this->min_loss_v            << sep
-            << stats.med_loss.back()       << sep
-            << stats.med_loss_v.back()     << sep
-            << stats.med_size.back()       << sep
-            << stats.med_complexity.back() << sep
-            << stats.med_num_params.back() << sep
-            << stats.min_tests_used.back() << sep
-            << stats.med_tests_used.back() << sep
-            << stats.max_tests_used.back() << sep
-            << stats.med_dim.back()        << "\n"; 
-    } 
 }
+
+void Feat::log_stats(std::ofstream& log)
+{
+    // print stats in tabular format
+    string sep = ",";
+    if (params.current_gen == 0) // print header
+    {
+        log << "generation"     << sep
+            << "time"           << sep
+            << "min_loss"       << sep 
+            << "min_loss_val"   << sep 
+            << "med_loss"       << sep 
+            << "med_loss_val"   << sep 
+            << "med_size"       << sep 
+            << "med_complexity" << sep 
+            << "med_num_params" << sep
+            << "min_tests_used" << sep
+            << "med_tests_used" << sep
+            << "max_tests_used" << sep
+            << "med_dim"        << "\n";
+    }
+    log << params.current_gen          << sep
+        << timer.Elapsed().count()     << sep
+        << stats.min_loss.back()       << sep
+        << this->min_loss_v            << sep
+        << stats.med_loss.back()       << sep
+        << stats.med_loss_v.back()     << sep
+        << stats.med_size.back()       << sep
+        << stats.med_complexity.back() << sep
+        << stats.med_num_params.back() << sep
+        << stats.min_tests_used.back() << sep
+        << stats.med_tests_used.back() << sep
+        << stats.max_tests_used.back() << sep
+        << stats.med_dim.back()        << "\n"; 
+}
+
 //TODO: replace these with json
 json Feat::get_stats()
 { 

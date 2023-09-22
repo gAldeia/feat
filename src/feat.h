@@ -434,6 +434,8 @@ class Feat
         void print_stats(std::ofstream& log,
                          float fraction);      
 
+        void log_stats(std::ofstream& log);
+
         // gets weights via univariate initial models
         vector<float> univariate_initial_model(DataRef &d, int n_feats);
         /// method to fit inital ml model            
