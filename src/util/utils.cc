@@ -295,6 +295,9 @@ void Log_Stats::update(int index,
     med_complexity.push_back(md_complexity);
     med_num_params.push_back(md_num_params);
     med_dim.push_back(md_dim);
+    min_tests_used.push_back(min_tests);
+    med_tests_used.push_back(md_tests);
+    max_tests_used.push_back(max_tests);
 }
 
 std::string ravel(const vector<string>& v, string sep)

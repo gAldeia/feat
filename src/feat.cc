@@ -1385,14 +1385,15 @@ void Feat::calculate_stats(const DataRef& d)
 
     vector<size_t> v;
     v.resize(this->pop.size());
-    std::iota(v.begin(), v.end(), 0);
 
     // TODO: maybe a getter function to get pselector?
     if (this->selector.get_type() == "pareto_lexicase")
         v = dynamic_cast<ParetoLexicase*>(this->selector.pselector.get())->n_cases_used;
     else if (this->selector.get_type() == "lexicase")
         v = dynamic_cast<Lexicase*>(this->selector.pselector.get())->n_cases_used;
-    
+    else
+    std::fill(v.begin(), v.end(), 0);
+
     for (size_t i=0; i<this->pop.size(); i++)
         n_cases_used(i) = v.at(i);
 
@@ -1562,7 +1563,7 @@ void Feat::print_stats(std::ofstream& log, float fraction)
                 << "min_tests_used" << sep
                 << "med_tests_used" << sep
                 << "max_tests_used" << sep
-                << "med_dim\n";
+                << "med_dim"        << "\n";
         }
 
         log << params.current_gen          << sep
