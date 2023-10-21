@@ -47,13 +47,13 @@ vector<size_t> ParetoLexicase::select(Population& pop,
             VectorXf case_errors(pop.individuals.size());
             for (int j = 0; j<pop.individuals.size(); ++j)
             {
+                // calculate semi-dynamic epsion for complexity
                 case_errors(j) = pop.individuals.at(j).error(i);
             }
             epsilon(i) = mad(case_errors);
         }
     }
     
-    // calculate static epsion for complexity
     float complexity_epsilon;
     VectorXf pop_complexity(pop.individuals.size());
     for (int j = 0; j<pop.individuals.size(); ++j)
