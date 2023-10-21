@@ -1400,9 +1400,9 @@ void Feat::calculate_stats(const DataRef& d)
     for (size_t i=0; i<this->pop.size(); i++)
         n_cases_used(i) = v.at(i);
 
-    float min_tests_used = n_cases_used.minCoeff();
-    float med_tests_used = median(n_cases_used.array());  
-    float max_tests_used = n_cases_used.maxCoeff();  
+    unsigned min_tests_used = n_cases_used.minCoeff();
+    unsigned med_tests_used = median(n_cases_used.array());  
+    unsigned max_tests_used = n_cases_used.maxCoeff();  
     
     /* unsigned med_size = median(Sizes); */ 
     unsigned med_complexity = median(Complexities);            

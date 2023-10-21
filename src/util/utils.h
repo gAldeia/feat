@@ -390,9 +390,9 @@ struct Log_Stats
     vector<unsigned> med_complexity;
     vector<unsigned> med_num_params;
     vector<unsigned> med_dim;
-    vector<float> min_tests_used;
-    vector<float> med_tests_used;
-    vector<float> max_tests_used;
+    vector<unsigned> min_tests_used;
+    vector<unsigned> med_tests_used;
+    vector<unsigned> max_tests_used;
     
     void update(int index,
                 float timer_count,
@@ -404,9 +404,9 @@ struct Log_Stats
                 unsigned md_complexity,
                 unsigned md_num_params,
                 unsigned md_dim,
-                float min_tests,
-                float md_tests,
-                float max_tests);
+                unsigned min_tests,
+                unsigned md_tests,
+                unsigned max_tests);
 };
 
 typedef struct Log_Stats Log_stats;
