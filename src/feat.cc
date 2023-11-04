@@ -1503,10 +1503,12 @@ void Feat::print_stats(std::ofstream& log, float fraction)
 
             std::string model = this->get_ind_eqn(false, archive.individuals[i]);
             /* std::string model = archive.individuals[i].get_eqn(); */
+            
             for (unsigned j = 0; j< std::min(model.size(),size_t(60)); ++j)
             {
                 lim_model.push_back(model.at(j));
             }
+            
             if (lim_model.size()==60) 
                 lim_model += "...";
             
@@ -1533,16 +1535,21 @@ void Feat::print_stats(std::ofstream& log, float fraction)
         {     
             std::string lim_model;
             std::string model = this->get_ind_eqn(false,pop.individuals[f[j]]);
+            
             /* std::string model = this->pop.individuals[f[j]].get_eqn(); */
             for (unsigned j = 0; j< std::min(model.size(),size_t(60)); ++j)
+            {
                 lim_model.push_back(model.at(j));
+            }
+
             if (lim_model.size()==60) 
                 lim_model += "...";
+
             std::cout << pop.individuals[f[j]].rank             << "\t" 
                       << pop.individuals[f[j]].fitness          << "\t" 
                       << pop.individuals[f[j]].fitness_v        << "\t" 
                       << pop.individuals[f[j]].get_complexity() << "\t" ;
-            cout << "\t" << lim_model << "\n";  
+            std::cout << "\t" << lim_model << "\n";  
         }
     }
    

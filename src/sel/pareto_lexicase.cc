@@ -34,34 +34,7 @@ vector<size_t> ParetoLexicase::select(Population& pop,
     unsigned int N = pop.individuals.at(0).error.size(); 
     //< number of individuals
     unsigned int P = pop.individuals.size();
-    // define epsilon
-    ArrayXf epsilon = ArrayXf::Zero(N);
-
-    // if output is continuous, use epsilon lexicase            
-    if (!params.classification || params.scorer_.compare("log")==0 
-    ||  params.scorer_.compare("multi_log")==0)
-    {
-        // for each sample, calculate epsilon
-        for (int i = 0; i<epsilon.size(); ++i)
-        {
-            VectorXf case_errors(pop.individuals.size());
-            for (int j = 0; j<pop.individuals.size(); ++j)
-            {
-                // calculate semi-dynamic epsion for complexity
-                case_errors(j) = pop.individuals.at(j).error(i);
-            }
-            epsilon(i) = mad(case_errors);
-        }
-    }
     
-    float complexity_epsilon;
-    VectorXf pop_complexity(pop.individuals.size());
-    for (int j = 0; j<pop.individuals.size(); ++j)
-    {
-        pop_complexity(j) = pop.individuals.at(j).get_complexity();
-    }
-    complexity_epsilon = mad(pop_complexity);
-
     // selection pool
     vector<size_t> starting_pool;
     for (int i = 0; i < pop.individuals.size(); ++i)
@@ -114,10 +87,32 @@ vector<size_t> ParetoLexicase::select(Population& pop,
         unsigned int h = 0;   // case count, index used in cases[h]
 
         while(pass){    // main loop
+            // Calculating epsilons on demand
+            float error_epsilon = 0;
+            // if output is continuous, use epsilon lexicase            
+            if (!params.classification || params.scorer_.compare("log")==0 
+            ||  params.scorer_.compare("multi_log")==0)
+            {
+                VectorXf pool_error(pool.size());
+                for (int j = 0; j<pop.individuals.size(); ++j)
+                {
+                    pool_error(j) = pop.individuals.at(pool[j]).error(cases[h]);
+                }
+                error_epsilon = mad(pool_error);
+            }
+            
+            float complexity_epsilon;
+            VectorXf pool_complexity(pool.size());
+            for (int j = 0; j<pool.size(); ++j)
+            {
+                pool_complexity(j) = pop.individuals.at(pool[j]).get_complexity();
+            }
+            complexity_epsilon = mad(pool_complexity);
+            
             winner.resize(0);   // winners     
 
             // fast non-dominated epsilon-sort
-            vector<float> eps{epsilon[cases[h]], complexity_epsilon};
+            vector<float> eps{error_epsilon, complexity_epsilon};
             fast_eNDS(pop.individuals, pool, cases[h], eps);
 
             // get winners based on relative index used in pool
@@ -221,8 +216,8 @@ void ParetoLexicase::fast_eNDS(
         // p.dcounter  = 0;
         // p.dominated.clear();
     
-        for (int j = 0; j < pool.size(); ++j) {
-        
+        for (int j = 0; j < pool.size(); ++j)
+        {
             Individual& q = individuals.at(pool[j]);
             vector<float> q_obj{q.error(case_id), (float)q.complexity};
         
