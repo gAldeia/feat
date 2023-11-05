@@ -1361,7 +1361,8 @@ void Feat::calculate_stats(const DataRef& d)
     i = 0; 
     for (auto& p : this->pop.individuals)
     { 
-        Complexities(i) = p.get_complexity(); 
+        // Calculate it to assure it gets reported (even if's not used as an obj) 
+        Complexities(i) = p.set_complexity();
         ++i;
     }
 
@@ -1390,6 +1391,7 @@ void Feat::calculate_stats(const DataRef& d)
     v.resize(this->pop.size());
 
     // TODO: maybe a getter function to get pselector?
+    // TODO: implement track of number of cases used to all lexicases
     if (this->selector.get_type() == "pareto_lexicase")
         v = dynamic_cast<ParetoLexicase*>(this->selector.pselector.get())->n_cases_used;
     else if (this->selector.get_type() == "lexicase")

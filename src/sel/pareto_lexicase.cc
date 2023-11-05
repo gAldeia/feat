@@ -30,6 +30,11 @@ vector<size_t> ParetoLexicase::select(Population& pop,
      * are selected.
      */
     
+    // set objectives
+    #pragma omp parallel for
+    for (unsigned int i=0; i<pop.size(); ++i)
+        pop.individuals.at(i).set_obj(params.objectives);
+
     //< number of samples
     unsigned int N = pop.individuals.at(0).error.size(); 
     //< number of individuals
