@@ -94,7 +94,7 @@ vector<size_t> ParetoLexicase::select(Population& pop,
             ||  params.scorer_.compare("multi_log")==0)
             {
                 VectorXf pool_error(pool.size());
-                for (int j = 0; j<pop.individuals.size(); ++j)
+                for (int j = 0; j<pool.size(); ++j)
                 {
                     pool_error(j) = pop.individuals.at(pool[j]).error(cases[h]);
                 }
@@ -105,7 +105,7 @@ vector<size_t> ParetoLexicase::select(Population& pop,
             VectorXf pool_complexity(pool.size());
             for (int j = 0; j<pool.size(); ++j)
             {
-                pool_complexity(j) = pop.individuals.at(pool[j]).get_complexity();
+                pool_complexity(j) = (float)pop.individuals.at(pool[j]).get_complexity();
             }
             complexity_epsilon = mad(pool_complexity);
             
@@ -178,7 +178,7 @@ auto ParetoLexicase::epsi_dominated(vector<float> const &lhs,
             if (std::isnan(b)) return true;
         }
         // needs to be smaller but not equal. equalty is used considering epsilon 
-        return a + eps < b;
+        return a < b && abs(a-b) > eps;
     };
 
     for (; lhs_it!=lhs.end() && rhs_it!=rhs.end() && eps_it!=eps.end(); 
@@ -211,6 +211,7 @@ void ParetoLexicase::fast_eNDS(
         std::vector<unsigned int> dom;
         int dcount = 0;
     
+        // TODO: work with any secundary objective, not just complexity
         Individual& p = individuals.at(pool[i]);
         vector<float> p_obj{p.error(case_id), (float)p.complexity};
         // p.dcounter  = 0;
