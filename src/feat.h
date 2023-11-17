@@ -292,7 +292,6 @@ class Feat
         bool get_tune_final(){ return this->params.tune_final;};
         void set_tune_final(bool in){ this->params.tune_final = in;};
 
-
         /// get objectives for multi-objective search
         auto get_objectives(){return params.get_objectives(); };  
         /// set objectives for multi-objective search
@@ -466,7 +465,6 @@ class Feat
                 best_ind,
                 is_fitted
         );
-                
 };
 
 // forward declarations
