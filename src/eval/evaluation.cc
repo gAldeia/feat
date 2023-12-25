@@ -55,11 +55,11 @@ namespace FT{
 
                 if (!pass)
                 {
-
                     ind.fitness_v = MAX_FLT; 
                 }
                 else
                 {
+                    //TODO: use assign_fit here
                     // assign fitness to individual
                     VectorXf loss;
                     ind.fitness_v = this->S.score(d.y, yhat, loss, 
