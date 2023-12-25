@@ -58,7 +58,8 @@ namespace FT{
             if (params.current_gen==0)
                 return pool;
 
-            vector<size_t> selected(pop.size());
+            // TODO: check if selected initialization and push back are right
+            vector<size_t> selected(pop.size()); 
 
             for (int i = 0; i < pop.size(); ++i)
             {

@@ -52,7 +52,7 @@ class Feat(BaseEstimator):
         'a': all
         'b': boolean only
         'f': floating point only
-    functions: list[str], optional (default: [])
+    functions: list[string], optional (default: [])
         A comma-separated string of operators to use to build features. 
         If functions=[], all the available functions are used. 
         Options: +, -, *, /, ^2, ^3, sqrt, sin, cos, exp, log, ^, logit, tanh, 
