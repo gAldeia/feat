@@ -716,6 +716,13 @@ void Feat::run_generation(unsigned int g,
     if (params.max_stall > 0)
         update_stall_count(stall_count, updated_best);
 
+    if ( (use_arch || params.verbosity>1) || !logfile.empty()) {
+        // set objectives to make sure they are reported in log/verbose/arch
+        #pragma omp parallel for
+        for (unsigned int i=0; i<pop.size(); ++i)
+            pop.individuals.at(i).set_obj(params.objectives);
+    }
+
     logger.log("update archive...",2);
     if (use_arch) 
         archive.update(pop,params);
@@ -1360,9 +1367,10 @@ void Feat::calculate_stats(const DataRef& d)
     ArrayXf Complexities(this->pop.size()); 
     i = 0; 
     for (auto& p : this->pop.individuals)
-    { 
-        // Calculate it to assure it gets reported (even if's not used as an obj) 
-        Complexities(i) = p.set_complexity();
+    {
+        // Calculate to assure it gets reported in stats
+        // (even if's not used as an obj)
+        Complexities(i) = p.get_complexity(); 
         ++i;
     }
 
