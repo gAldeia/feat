@@ -20,7 +20,6 @@ vector<size_t> ParetoLexicase::select(Population& pop,
         const Parameters& params, const Data& d)
 {
     // TODO: write proper docstring
-    // TODO: make all lines below 80
     /*! Selection according to lexicase selection for 
      * binary outcomes and epsilon-lexicase selection for continuous. 
      * @param pop: population
@@ -110,7 +109,8 @@ vector<size_t> ParetoLexicase::select(Population& pop,
             VectorXf pool_complexity(pool.size());
             for (int j = 0; j<pool.size(); ++j)
             {
-                pool_complexity(j) = (float)pop.individuals.at(pool[j]).get_complexity();
+                pool_complexity(j) = 
+                    (float) pop.individuals.at(pool[j]).get_complexity();
             }
             complexity_epsilon = mad(pool_complexity);
             
@@ -121,7 +121,7 @@ vector<size_t> ParetoLexicase::select(Population& pop,
             fast_eNDS(pop.individuals, pool, cases[h], eps);
 
             // get winners based on relative index used in pool
-            winner.reserve(winner.size() + distance( front.begin(), front.end()));
+            winner.reserve(winner.size() + distance(front.begin(),front.end()));
             winner.insert(winner.end(), front.begin(), front.end());
             
             ++h; // next case 
@@ -136,7 +136,7 @@ vector<size_t> ParetoLexicase::select(Population& pop,
                     pass = true;
             }
             else
-                pool = winner;    // reduce pool to remaining individuals
+                pool = winner; // reduce pool to remaining individuals
         }       
 
         assert(winner.size()>0);
@@ -182,7 +182,7 @@ auto ParetoLexicase::epsi_dominated(vector<float> const &lhs,
             if (std::isnan(a)) return false;
             if (std::isnan(b)) return true;
         }
-        // needs to be smaller but not equal. equalty is used considering epsilon 
+        // needs to be smaller, but not equal. 
         return a < b && abs(a-b) > eps;
     };
 

@@ -98,33 +98,33 @@ vector<size_t> Lexicase::select(Population& pop,
 
         while(pass){    // main loop
 
-          winner.resize(0);   // winners                  
-          // minimum error on case
-          float minfit = std::numeric_limits<float>::max();                     
+            winner.resize(0);   // winners                  
+            // minimum error on case
+            float minfit = std::numeric_limits<float>::max();                     
 
-          // get minimum
-          for (size_t j = 0; j<pool.size(); ++j)
-              if (pop.individuals.at(pool[j]).error(cases[h]) < minfit) 
-                  minfit = pop.individuals.at(pool[j]).error(cases[h]);
-          
-          // select best
-          for (size_t j = 0; j<pool.size(); ++j)
-              if (pop.individuals.at(pool[j]).error(cases[h]) 
-                      <= minfit+epsilon[cases[h]])
+            // get minimum
+            for (size_t j = 0; j<pool.size(); ++j)
+                if (pop.individuals.at(pool[j]).error(cases[h]) < minfit) 
+                    minfit = pop.individuals.at(pool[j]).error(cases[h]);
+            
+            // select best
+            for (size_t j = 0; j<pool.size(); ++j)
+                if (pop.individuals.at(pool[j]).error(cases[h]) 
+                        <= minfit+epsilon[cases[h]])
                 winner.push_back(pool[j]);                 
-         
-          ++h; // next case
-          // only keep going if needed
-          pass = (winner.size()>1 && h<cases.size()); 
-          
-          if(winner.size() == 0)
-          {
+            
+            ++h; // next case
+            // only keep going if needed
+            pass = (winner.size()>1 && h<cases.size()); 
+            
+            if(winner.size() == 0)
+            {
             if(h >= cases.size())
                 winner.push_back(r.random_choice(pool));
             else
                 pass = true;
-          }
-          else
+            }
+            else
             pool = winner;    // reduce pool to remaining individuals
         }       
     
