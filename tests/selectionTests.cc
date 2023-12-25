@@ -72,5 +72,5 @@ TEST_P(SelectionTest, SelectionOperator)
 }
 
 INSTANTIATE_TEST_SUITE_P(AllSelectionTypes, SelectionTest,
-    testing::Values("lexicase", "fair_lexicase", "pareto_lexicase",
+    testing::Values("lexicase", "fair_lexicase", "pareto_lexicase", "split_lexicase",
                     "simanneal", "tournament", "offspring", "random", "nsga2"));

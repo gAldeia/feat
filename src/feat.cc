@@ -1397,15 +1397,17 @@ void Feat::calculate_stats(const DataRef& d)
 
     vector<size_t> v;
     v.resize(this->pop.size());
-
+    
     // TODO: maybe a getter function to get pselector?
     // TODO: implement track of number of cases used to all lexicases
     if (this->selector.get_type() == "pareto_lexicase")
         v = dynamic_cast<ParetoLexicase*>(this->selector.pselector.get())->n_cases_used;
     else if (this->selector.get_type() == "lexicase")
         v = dynamic_cast<Lexicase*>(this->selector.pselector.get())->n_cases_used;
+    else if (this->selector.get_type() == "split_lexicase")
+        v = dynamic_cast<SplitLexicase*>(this->selector.pselector.get())->n_cases_used;
     else
-    std::fill(v.begin(), v.end(), 0);
+        std::fill(v.begin(), v.end(), 0);
 
     for (size_t i=0; i<this->pop.size(); i++)
         n_cases_used(i) = v.at(i);

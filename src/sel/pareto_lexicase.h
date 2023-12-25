@@ -51,7 +51,7 @@ namespace Sel{
                 vector<Individual>& individuals, vector<size_t>& pool,
                 size_t case_id, vector<float> eps);  
 
-            // the Pareto front (just individuals in the rank 1). Used by fast_eNDS
+            // Pareto front (just individuals in the rank 1). Used by fast_eNDS
             vector<size_t> front;   
     };
 }
