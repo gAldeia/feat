@@ -34,7 +34,7 @@ vector<size_t> Lexicase::select(Population& pop,
   
     // if output is continuous, use epsilon lexicase            
     if (!params.classification || params.scorer_.compare("log")==0 
-            || params.scorer_.compare("multi_log")==0)
+    ||  params.scorer_.compare("multi_log")==0)
     {
         // for each sample, calculate epsilon
         for (int i = 0; i<epsilon.size(); ++i)
@@ -57,6 +57,11 @@ vector<size_t> Lexicase::select(Population& pop,
     assert(starting_pool.size() == P);     
     
     vector<size_t> selected(P,0); // selected individuals
+
+    // tracking how many test cases each individual took before being selected
+    n_cases_used.resize(P);
+    std::iota(n_cases_used.begin(), n_cases_used.end(), 0);
+    
     #pragma omp parallel for 
     for (unsigned int i = 0; i<P; ++i)  // selection loop
     {
@@ -121,11 +126,12 @@ vector<size_t> Lexicase::select(Population& pop,
           }
           else
             pool = winner;    // reduce pool to remaining individuals
-      
         }       
     
-    
         assert(winner.size()>0);
+
+        n_cases_used[i] = h;
+        
         //if more than one winner, pick randomly
         selected.at(i) = r.random_choice(winner);   
     }               

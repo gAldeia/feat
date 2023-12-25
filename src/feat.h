@@ -292,7 +292,6 @@ class Feat
         bool get_tune_final(){ return this->params.tune_final;};
         void set_tune_final(bool in){ this->params.tune_final = in;};
 
-
         /// get objectives for multi-objective search
         auto get_objectives(){return params.get_objectives(); };  
         /// set objectives for multi-objective search
@@ -433,8 +432,9 @@ class Feat
         void calculate_stats(const DataRef& d);
         void print_stats(std::ofstream& log,
                          float fraction);      
+
         void log_stats(std::ofstream& log);
-        
+
         // gets weights via univariate initial models
         vector<float> univariate_initial_model(DataRef &d, int n_feats);
         /// method to fit inital ml model            
@@ -465,7 +465,6 @@ class Feat
                 best_ind,
                 is_fitted
         );
-                
 };
 
 // forward declarations

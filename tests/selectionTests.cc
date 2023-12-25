@@ -19,12 +19,12 @@ TEST_P(SelectionTest, SelectionOperator)
 
     MatrixXf X(7,2); 
     X << 0,1,  
-         0.47942554,0.87758256,  
+         0.47942554,  0.87758256,  
          0.84147098,  0.54030231,
          0.99749499,  0.0707372,
          0.90929743, -0.41614684,
          0.59847214, -0.80114362,
-         0.14112001,-0.9899925;
+         0.14112001, -0.9899925;
 
     X.transposeInPlace();
     
@@ -72,5 +72,5 @@ TEST_P(SelectionTest, SelectionOperator)
 }
 
 INSTANTIATE_TEST_SUITE_P(AllSelectionTypes, SelectionTest,
-    testing::Values("lexicase", "fair_lexicase", "simanneal", "tournament",
-                    "offspring", "random", "nsga2"));
+    testing::Values("lexicase", "fair_lexicase", "pareto_lexicase",
+                    "simanneal", "tournament", "offspring", "random", "nsga2"));

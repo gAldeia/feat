@@ -50,7 +50,6 @@ vector<size_t> FairLexicase::select(Population& pop,
         vector<size_t> pool = starting_pool;    // initial pool   
         vector<size_t> winner;                  // winners
 
-
         vector<size_t> shuff_idx; // used to shuffle cases
         map<int,vector<float>> protect_levels;
         vector<float> used_levels;

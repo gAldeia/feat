@@ -31,6 +31,8 @@ namespace Sel{
         vector<size_t> survive(Population& pop,  
                 const Parameters& params, const Data& d); 
 
+        // number of test cases used to select each of the selected individuals
+        vector<size_t> n_cases_used;
     };
 }
 

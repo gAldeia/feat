@@ -1368,7 +1368,8 @@ void Feat::calculate_stats(const DataRef& d)
     i = 0; 
     for (auto& p : this->pop.individuals)
     {
-        // Calculate to assure it gets reported in stats (even if's not used as an obj)
+        // Calculate to assure it gets reported in stats
+        // (even if's not used as an obj)
         Complexities(i) = p.get_complexity(); 
         ++i;
     }
@@ -1390,6 +1391,28 @@ void Feat::calculate_stats(const DataRef& d)
         Dims(i) = p.get_dim(); 
         ++i;
     }
+
+    // number of test cases in lexicase selection
+    VectorXf n_cases_used(this->pop.size());
+
+    vector<size_t> v;
+    v.resize(this->pop.size());
+
+    // TODO: maybe a getter function to get pselector?
+    // TODO: implement track of number of cases used to all lexicases
+    if (this->selector.get_type() == "pareto_lexicase")
+        v = dynamic_cast<ParetoLexicase*>(this->selector.pselector.get())->n_cases_used;
+    else if (this->selector.get_type() == "lexicase")
+        v = dynamic_cast<Lexicase*>(this->selector.pselector.get())->n_cases_used;
+    else
+    std::fill(v.begin(), v.end(), 0);
+
+    for (size_t i=0; i<this->pop.size(); i++)
+        n_cases_used(i) = v.at(i);
+
+    unsigned min_tests_used = n_cases_used.minCoeff();
+    unsigned med_tests_used = median(n_cases_used.array());  
+    unsigned max_tests_used = n_cases_used.maxCoeff();  
     
     /* unsigned med_size = median(Sizes); */ 
     unsigned med_complexity = median(Complexities);            
@@ -1425,7 +1448,10 @@ void Feat::calculate_stats(const DataRef& d)
                  med_size,
                  med_complexity,
                  med_num_params,
-                 med_dim);
+                 med_dim,
+                 min_tests_used,
+                 med_tests_used,
+                 max_tests_used);
 }
 
 void Feat::print_stats(std::ofstream& log, float fraction)
@@ -1487,10 +1513,12 @@ void Feat::print_stats(std::ofstream& log, float fraction)
 
             std::string model = this->get_ind_eqn(false, archive.individuals[i]);
             /* std::string model = archive.individuals[i].get_eqn(); */
+            
             for (unsigned j = 0; j< std::min(model.size(),size_t(60)); ++j)
             {
                 lim_model.push_back(model.at(j));
             }
+            
             if (lim_model.size()==60) 
                 lim_model += "...";
             
@@ -1517,16 +1545,21 @@ void Feat::print_stats(std::ofstream& log, float fraction)
         {     
             std::string lim_model;
             std::string model = this->get_ind_eqn(false,pop.individuals[f[j]]);
+            
             /* std::string model = this->pop.individuals[f[j]].get_eqn(); */
             for (unsigned j = 0; j< std::min(model.size(),size_t(60)); ++j)
+            {
                 lim_model.push_back(model.at(j));
+            }
+
             if (lim_model.size()==60) 
                 lim_model += "...";
-            std::cout << pop.individuals[f[j]].rank              << "\t" 
-                      << pop.individuals[f[j]].fitness              << "\t" 
-                      << pop.individuals[f[j]].fitness_v              << "\t" 
-                      << pop.individuals[f[j]].get_complexity()              << "\t" ;
-            cout << "\t" << lim_model << "\n";  
+
+            std::cout << pop.individuals[f[j]].rank             << "\t" 
+                      << pop.individuals[f[j]].fitness          << "\t" 
+                      << pop.individuals[f[j]].fitness_v        << "\t" 
+                      << pop.individuals[f[j]].get_complexity() << "\t" ;
+            std::cout << "\t" << lim_model << "\n";  
         }
     }
    
@@ -1548,6 +1581,9 @@ void Feat::log_stats(std::ofstream& log)
             << "med_size"       << sep 
             << "med_complexity" << sep 
             << "med_num_params" << sep
+            << "min_tests_used" << sep
+            << "med_tests_used" << sep
+            << "max_tests_used" << sep
             << "med_dim"        << "\n";
     }
     log << params.current_gen          << sep
@@ -1559,6 +1595,9 @@ void Feat::log_stats(std::ofstream& log)
         << stats.med_size.back()       << sep
         << stats.med_complexity.back() << sep
         << stats.med_num_params.back() << sep
+        << stats.min_tests_used.back() << sep
+        << stats.med_tests_used.back() << sep
+        << stats.max_tests_used.back() << sep
         << stats.med_dim.back()        << "\n"; 
 }
 
