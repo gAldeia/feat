@@ -68,7 +68,7 @@ class Feat(BaseEstimator):
         Random seed. If -1, will choose a random random_state.
     erc: boolean, optional (default: False)
         If true, ephemeral random constants are included as nodes in trees.
-    objectives: list[str], optional (default: "fitness,complexity")
+    objectives: list[str], optional (default: ["fitness","complexity"])
         Objectives to use for multi-objective optimization.
     shuffle: boolean, optional (default: True)
         Whether to shuffle the training data before beginning training.
@@ -399,9 +399,9 @@ class Feat(BaseEstimator):
     def get_model(self, sort=True): return self.cfeat_.get_model(sort)
     def get_coefs(self): return self.cfeat_.get_coefs()
     def get_n_params(self): return self.cfeat_.get_n_params()
-    def get_complexity(self): return self.cfeat_.get_complexity()
     def get_dim(self): return self.cfeat_.get_dim()
     def get_n_nodes(self): return self.cfeat_.get_n_nodes()
+    def get_complexity(self): return self.cfeat_.get_complexity()
 
 class FeatRegressor(Feat):
     """Convenience method that enforces regression options."""
