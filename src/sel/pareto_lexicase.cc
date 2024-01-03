@@ -54,6 +54,10 @@ vector<size_t> ParetoLexicase::select(Population& pop,
     n_cases_used.resize(P);
     std::iota(n_cases_used.begin(), n_cases_used.end(), 0);
     
+    // threshold used to pick each individual
+    thresholds.resize(P);
+    std::iota(thresholds.begin(), thresholds.end(), 0);
+
     // selection loop
     #pragma omp parallel for 
     for (unsigned int i = 0; i<P; ++i)
@@ -90,9 +94,12 @@ vector<size_t> ParetoLexicase::select(Population& pop,
         bool pass = true;     // checks pool size and number of cases
         unsigned int h = 0;   // case count, index used in cases[h]
 
+        float error_epsilon;
+
         while(pass){    // main loop
             // Calculating epsilons on demand
-            float error_epsilon = 0;
+            error_epsilon = 0;
+
             // if output is continuous, use epsilon lexicase            
             if (!params.classification || params.scorer_.compare("log")==0 
             ||  params.scorer_.compare("multi_log")==0)
@@ -142,6 +149,7 @@ vector<size_t> ParetoLexicase::select(Population& pop,
         assert(winner.size()>0);
 
         n_cases_used[i] = h;
+        thresholds[i]   = error_epsilon;
 
         //if more than one winner, pick randomly
         selected.at(i) = r.random_choice(winner);   

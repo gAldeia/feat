@@ -43,6 +43,10 @@ vector<size_t> SplitLexicase::select(Population& pop,
     // tracking how many test cases each individual took before being selected
     n_cases_used.resize(P);
     std::iota(n_cases_used.begin(), n_cases_used.end(), 0);
+
+    // threshold used to pick each individual
+    thresholds.resize(P);
+    std::iota(thresholds.begin(), thresholds.end(), 0);
     
     // selection loop
     #pragma omp parallel for 
@@ -80,10 +84,11 @@ vector<size_t> SplitLexicase::select(Population& pop,
         bool pass = true;     // checks pool size and number of cases
         unsigned int h = 0;   // case count, index used in cases[h]
 
+        float split_threshold;
+        
         while(pass){    // main loop
-
             // Calculating epsilon on demand
-            float split_threshold = 0;
+            split_threshold = 0;
 
             // TODO: handle classification and regression here
             // if output is continuous, use epsilon lexicase            
@@ -97,6 +102,11 @@ vector<size_t> SplitLexicase::select(Population& pop,
                 }
                 split_threshold = find_threshold(pool_error);
             }
+
+            // everyone is on one side of the partition
+            if (split_threshold==0) {
+                continue;
+            }
             
             winner.resize(0);   // winners     
 
@@ -109,6 +119,7 @@ vector<size_t> SplitLexicase::select(Population& pop,
                 }
 
             ++h; // next case 
+
             // only keep going if needed
             pass = (winner.size()>1 && h<cases.size()); 
             
@@ -126,6 +137,7 @@ vector<size_t> SplitLexicase::select(Population& pop,
         assert(winner.size()>0);
 
         n_cases_used[i] = h;
+        thresholds[i]   = split_threshold;
 
         //if more than one winner, pick randomly
         selected.at(i) = r.random_choice(winner);   

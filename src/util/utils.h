@@ -393,6 +393,9 @@ struct Log_Stats
     vector<unsigned> min_tests_used;
     vector<unsigned> med_tests_used;
     vector<unsigned> max_tests_used;
+    vector<float> min_threshold;
+    vector<float> med_threshold;
+    vector<float> max_threshold;
     
     void update(int index,
                 float timer_count,
@@ -406,7 +409,11 @@ struct Log_Stats
                 unsigned md_dim,
                 unsigned min_tests,
                 unsigned md_tests,
-                unsigned max_tests);
+                unsigned max_tests,
+                float mn_threshold,
+                float md_threshold,
+                float mx_threshold
+                );
 };
 
 typedef struct Log_Stats Log_stats;
@@ -421,6 +428,12 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Log_Stats,
     med_size,
     med_complexity,
     med_num_params,
+    min_tests_used,
+    med_tests_used,
+    max_tests_used,
+    min_threshold,
+    med_threshold,
+    max_threshold,
     med_dim);
 
 ///template function to convert objects to string for logging
