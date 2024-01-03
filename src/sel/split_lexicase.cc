@@ -103,8 +103,14 @@ vector<size_t> SplitLexicase::select(Population& pop,
                 split_threshold = find_threshold(pool_error);
             }
 
-            // everyone is on one side of the partition
-            if (split_threshold==0) {
+            float min_error = pool_error.minCoeff();
+            float max_error = pool_error.maxCoeff();
+
+            // handling when everyone is on the same side of the partition
+            if (split_threshold==0 // numeric error inside `find_threshold`
+            || (split_threshold<min_error // no one would be selected
+            ||  split_threshold>=max_error) // everyone is selected
+            ) {
                 continue;
             }
             
