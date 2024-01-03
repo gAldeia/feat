@@ -89,6 +89,8 @@ vector<size_t> SplitLexicase::select(Population& pop,
         while(pass){    // main loop
             // Calculating epsilon on demand
             split_threshold = 0;
+            float min_error = 0;
+            float max_error = 0;
 
             // TODO: handle classification and regression here
             // if output is continuous, use epsilon lexicase            
@@ -100,15 +102,15 @@ vector<size_t> SplitLexicase::select(Population& pop,
                 {
                     pool_error(j) = pop.individuals.at(pool[j]).error(cases[h]);
                 }
+                
                 split_threshold = find_threshold(pool_error);
+                min_error = pool_error.minCoeff();
+                max_error = pool_error.maxCoeff();
             }
-
-            float min_error = pool_error.minCoeff();
-            float max_error = pool_error.maxCoeff();
 
             // handling when everyone is on the same side of the partition
             if (split_threshold==0 // numeric error inside `find_threshold`
-            || (split_threshold<min_error // no one would be selected
+            || (split_threshold< min_error // no one would be selected
             ||  split_threshold>=max_error) // everyone is selected
             ) {
                 continue;
