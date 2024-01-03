@@ -37,6 +37,10 @@ namespace Sel{
         // number of test cases used to select each of the selected individuals
         vector<size_t> n_cases_used;
 
+        // split or epsilon threshold to remain in the pool before picking the
+        // final individual (just the error threshold, not the size)
+        vector<float> thresholds;
+
         private:
 
             //< dominance comparison with epison relaxation

@@ -32,6 +32,10 @@ namespace Sel{
         // number of test cases used to select each of the selected individuals
         vector<size_t> n_cases_used;
 
+        // split or epsilon threshold to remain in the pool before picking the
+        // final individual
+        vector<float> thresholds;
+
         private:
             /// Uses a heuristic to set a splitting threshold.
             float find_threshold(const ArrayXf& x);

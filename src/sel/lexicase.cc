@@ -61,6 +61,10 @@ vector<size_t> Lexicase::select(Population& pop,
     // tracking how many test cases each individual took before being selected
     n_cases_used.resize(P);
     std::iota(n_cases_used.begin(), n_cases_used.end(), 0);
+
+    // threshold used to pick each individual
+    thresholds.resize(P);
+    std::iota(thresholds.begin(), thresholds.end(), 0);
     
     #pragma omp parallel for 
     for (unsigned int i = 0; i<P; ++i)  // selection loop
@@ -95,8 +99,11 @@ vector<size_t> Lexicase::select(Population& pop,
 
         bool pass = true;     // checks pool size and number of cases
         unsigned int h = 0;   // case count
+        
+        float epsilon_threshold;
 
         while(pass){    // main loop
+            epsilon_threshold = 0;
 
             winner.resize(0);   // winners                  
             // minimum error on case
@@ -107,10 +114,13 @@ vector<size_t> Lexicase::select(Population& pop,
                 if (pop.individuals.at(pool[j]).error(cases[h]) < minfit) 
                     minfit = pop.individuals.at(pool[j]).error(cases[h]);
             
+            // criteria to stay in pool
+            epsilon_threshold = minfit+epsilon[cases[h]];
+
             // select best
             for (size_t j = 0; j<pool.size(); ++j)
                 if (pop.individuals.at(pool[j]).error(cases[h]) 
-                        <= minfit+epsilon[cases[h]])
+                        <= epsilon_threshold)
                 winner.push_back(pool[j]);                 
             
             ++h; // next case
@@ -131,6 +141,7 @@ vector<size_t> Lexicase::select(Population& pop,
         assert(winner.size()>0);
 
         n_cases_used[i] = h;
+        thresholds[i]   = epsilon_threshold;
         
         //if more than one winner, pick randomly
         selected.at(i) = r.random_choice(winner);   

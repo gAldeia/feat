@@ -567,7 +567,12 @@ int Feat::get_n_params(){ return best_ind.get_n_params(); }
 int Feat::get_dim(){ return best_ind.get_dim(); } 
 
 ///get dimensionality of best
-int Feat::get_complexity(){ return best_ind.get_complexity(); } 
+int Feat::get_complexity(){
+    // Making sure it is calculated before returning it
+    if (best_ind.get_complexity()==0)
+        best_ind.set_complexity();
+    return best_ind.get_complexity();
+} 
 
 
 /// return the number of nodes in the best model
@@ -710,9 +715,6 @@ void Feat::run_generation(unsigned int g,
     logger.log("update best...",2);
     bool updated_best = update_best(d);
 
-    logger.log("calculate stats...",2);
-    calculate_stats(d);
-
     if (params.max_stall > 0)
         update_stall_count(stall_count, updated_best);
 
@@ -722,6 +724,9 @@ void Feat::run_generation(unsigned int g,
         for (unsigned int i=0; i<pop.size(); ++i)
             pop.individuals.at(i).set_obj(params.objectives);
     }
+
+    logger.log("calculate stats...",2);
+    calculate_stats(d);
 
     logger.log("update archive...",2);
     if (use_arch) 
@@ -1392,29 +1397,55 @@ void Feat::calculate_stats(const DataRef& d)
         ++i;
     }
 
-    // number of test cases in lexicase selection
+    // number of test cases in lexicase-based selection methods
     VectorXf n_cases_used(this->pop.size());
+    VectorXf thresholds(this->pop.size());
 
-    vector<size_t> v;
-    v.resize(this->pop.size());
+    vector<size_t> cases_vector;
+    cases_vector.resize(this->pop.size());
+
+    vector<float> thresholds_vector;
+    thresholds_vector.resize(this->pop.size());
     
+    // TODO: stop casting. just change from vector to vectorXf inside lexicases
     // TODO: maybe a getter function to get pselector?
-    // TODO: implement track of number of cases used to all lexicases
-    if (this->selector.get_type() == "pareto_lexicase")
-        v = dynamic_cast<ParetoLexicase*>(this->selector.pselector.get())->n_cases_used;
-    else if (this->selector.get_type() == "lexicase")
-        v = dynamic_cast<Lexicase*>(this->selector.pselector.get())->n_cases_used;
-    else if (this->selector.get_type() == "split_lexicase")
-        v = dynamic_cast<SplitLexicase*>(this->selector.pselector.get())->n_cases_used;
-    else
-        std::fill(v.begin(), v.end(), 0);
+    // TODO: implement track of number of cases used to all lexicases?
+    if (this->selector.get_type() == "pareto_lexicase") {
+        cases_vector = dynamic_cast<ParetoLexicase*>
+                        (this->selector.pselector.get())->n_cases_used;
+        thresholds_vector = dynamic_cast<ParetoLexicase*>
+                            (this->selector.pselector.get())->thresholds;
+    }
+    else if (this->selector.get_type() == "lexicase") {
+        cases_vector = dynamic_cast<Lexicase*>
+                        (this->selector.pselector.get())->n_cases_used;
+        thresholds_vector = dynamic_cast<Lexicase*>
+                            (this->selector.pselector.get())->thresholds;
+    }
+    else if (this->selector.get_type() == "split_lexicase") {
+        cases_vector = dynamic_cast<SplitLexicase*>
+                        (this->selector.pselector.get())->n_cases_used;
+        thresholds_vector = dynamic_cast<SplitLexicase*>
+                            (this->selector.pselector.get())->thresholds;
+    }
+    else {
+        std::fill(cases_vector.begin(), cases_vector.end(), 0);
+        std::fill(thresholds_vector.begin(), thresholds_vector.end(), 0);
+    }
 
-    for (size_t i=0; i<this->pop.size(); i++)
-        n_cases_used(i) = v.at(i);
+    // casting to use custom functions
+    for (size_t i=0; i<this->pop.size(); i++) {
+        n_cases_used(i) = cases_vector.at(i);
+        thresholds(i) = thresholds_vector.at(i);
+    }
 
     unsigned min_tests_used = n_cases_used.minCoeff();
     unsigned med_tests_used = median(n_cases_used.array());  
     unsigned max_tests_used = n_cases_used.maxCoeff();  
+
+    float min_threshold = thresholds.minCoeff();
+    float med_threshold = median(thresholds.array());  
+    float max_threshold = thresholds.maxCoeff();  
     
     /* unsigned med_size = median(Sizes); */ 
     unsigned med_complexity = median(Complexities);            
@@ -1453,7 +1484,10 @@ void Feat::calculate_stats(const DataRef& d)
                  med_dim,
                  min_tests_used,
                  med_tests_used,
-                 max_tests_used);
+                 max_tests_used,
+                 min_threshold,
+                 med_threshold,
+                 max_threshold);
 }
 
 void Feat::print_stats(std::ofstream& log, float fraction)
@@ -1586,6 +1620,9 @@ void Feat::log_stats(std::ofstream& log)
             << "min_tests_used" << sep
             << "med_tests_used" << sep
             << "max_tests_used" << sep
+            << "min_threshold"  << sep
+            << "med_threshold"  << sep
+            << "max_threshold"  << sep
             << "med_dim"        << "\n";
     }
     log << params.current_gen          << sep
@@ -1600,6 +1637,9 @@ void Feat::log_stats(std::ofstream& log)
         << stats.min_tests_used.back() << sep
         << stats.med_tests_used.back() << sep
         << stats.max_tests_used.back() << sep
+        << stats.min_threshold.back()  << sep
+        << stats.med_threshold.back()  << sep
+        << stats.max_threshold.back()  << sep
         << stats.med_dim.back()        << "\n"; 
 }
 

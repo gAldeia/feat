@@ -283,7 +283,10 @@ void Log_Stats::update(int index,
                        unsigned md_dim,
                        unsigned min_tests,
                        unsigned md_tests,
-                       unsigned max_tests)
+                       unsigned max_tests,
+                       float mn_threshold,
+                       float md_threshold,
+                       float mx_threshold)
 {
     generation.push_back(index+1);
     time.push_back(timer_count);
@@ -298,6 +301,9 @@ void Log_Stats::update(int index,
     min_tests_used.push_back(min_tests);
     med_tests_used.push_back(md_tests);
     max_tests_used.push_back(max_tests);
+    min_threshold.push_back(mn_threshold);
+    med_threshold.push_back(md_threshold);
+    max_threshold.push_back(mx_threshold);
 }
 
 std::string ravel(const vector<string>& v, string sep)
