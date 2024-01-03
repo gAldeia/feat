@@ -199,6 +199,9 @@ class TestFeatWrapper(unittest.TestCase):
 
         assert(reg.get_representation() == loaded_reg.get_representation())
         assert(reg.get_model() == loaded_reg.get_model())
+        assert(reg.get_complexity() == loaded_reg.get_complexity())
+        assert(reg.get_n_params() == loaded_reg.get_n_params())
+        assert(reg.get_n_nodes() == loaded_reg.get_n_nodes())
         assert((reg.get_coefs() == loaded_reg.get_coefs()).all())
         loaded_params = loaded_reg.get_params()
         # print('\n',10*'=','\n')
