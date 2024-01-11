@@ -113,7 +113,8 @@ vector<size_t> SplitLexicase::select(Population& pop,
             || (split_threshold< min_error // no one would be selected
             ||  split_threshold>=max_error) // everyone is selected
             ) {
-                continue;
+                ++h;      // next case (this skip will be in the stats)
+                continue; // skip calculations
             }
             
             winner.resize(0);   // winners     
