@@ -3,7 +3,7 @@ copyright 2017 William La Cava
 license: GNU/GPL v3
 */
 
-#ifndef SPLITLEXICASE_H
+#ifndef StaticSPLITLEXICASE_H
 #define SPLITLEXICASE_H
 
 #include "selection_operator.h"
@@ -13,13 +13,17 @@ namespace FT{
 namespace Sel{
     ////////////////////////////////////////////////////////////// Declarations
     /*!
-     * @class SplitLexicase
-     * @brief SplitLexicase dynamic selection operator.
+     * @class StaticSplitLexicase
+     * @brief StaticSplitLexicase selection operator.
      */
-    struct SplitLexicase : SelectionOperator
+    struct StaticSplitLexicase : SelectionOperator
     {
-        SplitLexicase(bool surv);
-        ~SplitLexicase();
+        //static: get epsilon first with population, and then create bool array to apply normal lexicase
+        //semi: get all epsilon first with population, but criteria is based on eps+error(pool), not population
+        //dynamic: epsilon uses the pool
+        
+        StaticSplitLexicase(bool surv);
+        ~StaticSplitLexicase();
 
         // function returns a set of selected indices from pop 
         vector<size_t> select(Population& pop,  

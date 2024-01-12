@@ -11,6 +11,7 @@ license: GNU/GPL v3
 #include "fair_lexicase.h"
 #include "pareto_lexicase.h"
 #include "split_lexicase.h"
+#include "static_split_lexicase.h"
 #include "nsga2.h"
 #include "tournament.h"
 #include "offspring.h"

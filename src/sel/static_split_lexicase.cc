@@ -3,20 +3,20 @@ copyright 2017 William La Cava
 license: GNU/GPL v3
 */
 
-#include "split_lexicase.h"
+#include "static_split_lexicase.h"
 
 namespace FT{
 namespace Sel{
 
-SplitLexicase::SplitLexicase(bool surv)
+StaticSplitLexicase::StaticSplitLexicase(bool surv)
 { 
-    name = "split_lexicase"; 
+    name = "static_split_lexicase"; 
     survival = surv; 
 }
 
-SplitLexicase::~SplitLexicase(){}
+StaticSplitLexicase::~StaticSplitLexicase(){}
 
-vector<size_t> SplitLexicase::select(Population& pop,  
+vector<size_t> StaticSplitLexicase::select(Population& pop,  
         const Parameters& params, const Data& d)
 {
     // Choose threshold t such that the sum of the variance of the errors in
@@ -44,85 +44,77 @@ vector<size_t> SplitLexicase::select(Population& pop,
     n_cases_used.resize(P);
     std::fill(n_cases_used.begin(), n_cases_used.end(), 0);
 
-    // threshold used to pick each individual (used for logging)
+    // threshold used to pick each individual (this is used for logging, but its
+    // also static and can be calculated once)
     thresholds.resize(P);
     std::fill(thresholds.begin(), thresholds.end(), 0);
+
+    vector<float> split_thresholds(P);
+    std::fill(split_thresholds.begin(), split_thresholds.end(), 0);
     
+    vector<size_t> cases; // cases (samples)
+    if (params.classification && !params.class_weights.empty()) 
+    {
+        // for classification problems, weight case selection 
+        // by class weights
+        vector<size_t> choices(N);
+        std::iota(choices.begin(), choices.end(),0);
+        vector<float> sample_weights = params.sample_weights;
+        for (unsigned i = 0; i<N; ++i)
+        {
+            vector<size_t> choice_idxs(N-i);
+            std::iota(choice_idxs.begin(),choice_idxs.end(),0);
+            size_t idx = r.random_choice(choice_idxs,
+                    sample_weights);
+            cases.push_back(choices.at(idx));
+            choices.erase(choices.begin() + idx);
+            sample_weights.erase(sample_weights.begin() + idx);
+        }
+    }
+    else
+    {   // otherwise, choose cases randomly
+        cases.resize(N); 
+        std::iota(cases.begin(),cases.end(),0);
+        r.shuffle(cases.begin(),cases.end());   // shuffle cases
+    }
+
+    // this is how we decide who's going to stay in the pool. matrix is
+    // ind x test cases
+    ArrayXb fitness_within_eps(P, N);
+    for (unsigned int i = 0; i<N; ++i)
+    {
+        VectorXf pop_error(P);
+        for (unsigned int j = 0; i<P; ++j)
+        {
+            pop_error(j) = pop.individuals.at(j).error(cases[i]);
+        }
+
+        float split_threshold = find_threshold(pop_error);
+        for (unsigned int j = 0; i<P; ++j)
+        {
+            fitness_within_eps(j, i) = 
+                pop.individuals.at(j).error(cases[i]) <= split_threshold;
+        }
+        split_thresholds[cases[i]] = split_threshold;       
+    }
+
     // selection loop
     #pragma omp parallel for 
     for (unsigned int i = 0; i<P; ++i)
     {
-        vector<size_t> cases; // cases (samples)
-        if (params.classification && !params.class_weights.empty()) 
-        {
-            // for classification problems, weight case selection 
-            // by class weights
-            vector<size_t> choices(N);
-            std::iota(choices.begin(), choices.end(),0);
-            vector<float> sample_weights = params.sample_weights;
-            for (unsigned i = 0; i<N; ++i)
-            {
-                vector<size_t> choice_idxs(N-i);
-                std::iota(choice_idxs.begin(),choice_idxs.end(),0);
-                size_t idx = r.random_choice(choice_idxs,
-                        sample_weights);
-                cases.push_back(choices.at(idx));
-                choices.erase(choices.begin() + idx);
-                sample_weights.erase(sample_weights.begin() + idx);
-            }
-        }
-        else
-        {   // otherwise, choose cases randomly
-            cases.resize(N); 
-            std::iota(cases.begin(),cases.end(),0);
-            r.shuffle(cases.begin(),cases.end());   // shuffle cases
-        }
-
         vector<size_t> pool = starting_pool;    // initial pool   
         vector<size_t> winner;                  // winners
     
         bool pass = true;     // checks pool size and number of cases
         unsigned int h = 0;   // case count, index used in cases[h]
-
-        float split_threshold;
         
         while(pass){    // main loop
-            // Calculating epsilon on demand
-            split_threshold = 0;
-            float min_error = 0;
-            float max_error = 0;
-
-            // TODO: handle classification and regression here
-            // if output is continuous, use epsilon lexicase            
-            if (!params.classification || params.scorer_.compare("log")==0 
-            ||  params.scorer_.compare("multi_log")==0)
-            {
-                VectorXf pool_error(pool.size());
-                for (int j = 0; j<pool.size(); ++j)
-                {
-                    pool_error(j) = pop.individuals.at(pool[j]).error(cases[h]);
-                }
-                
-                split_threshold = find_threshold(pool_error);
-                min_error = pool_error.minCoeff();
-                max_error = pool_error.maxCoeff();
-            }
-
-            // handling when everyone is on the same side of the partition
-            if (split_threshold==0 // numeric error inside `find_threshold`
-            || (split_threshold< min_error // no one would be selected
-            ||  split_threshold>=max_error) // everyone is selected
-            ) {
-                ++h;      // next case (this skip will be in the stats)
-                continue; // skip calculations
-            }
-            
+            // TODO: handle classification here?
             winner.resize(0);   // winners     
 
             // select best
             for (size_t j = 0; j<pool.size(); ++j)
-                if (pop.individuals.at(pool[j]).error(cases[h])
-                        <= split_threshold) 
+                if ( fitness_within_eps(pool[j], cases[h]) )
                 {
                     winner.push_back(pool[j]);
                 }
@@ -144,9 +136,10 @@ vector<size_t> SplitLexicase::select(Population& pop,
         }       
 
         assert(winner.size()>0);
-
+        
+        // last threshold value before ending the selection of individual i 
         n_cases_used[i] = h;
-        thresholds[i]   = split_threshold;
+        thresholds[i]   = split_thresholds[cases[--h]];
 
         //if more than one winner, pick randomly
         selected.at(i) = r.random_choice(winner);   
@@ -163,7 +156,7 @@ vector<size_t> SplitLexicase::select(Population& pop,
     return selected;
 }
 
-vector<size_t> SplitLexicase::survive(Population& pop, 
+vector<size_t> StaticSplitLexicase::survive(Population& pop, 
         const Parameters& params, const Data& d)
 {
     /* Lexicase survival */
@@ -171,7 +164,7 @@ vector<size_t> SplitLexicase::survive(Population& pop,
     return vector<size_t>();
 }
 
-float SplitLexicase::find_threshold(const ArrayXf& x)
+float StaticSplitLexicase::find_threshold(const ArrayXf& x)
 {
     /* cout << "setting threshold\n"; */
     // for each unique value in x, calculate the reduction in the 
@@ -244,7 +237,7 @@ float SplitLexicase::find_threshold(const ArrayXf& x)
     return threshold;
 }
 
-float SplitLexicase::gain(const VectorXf& lsplit, const VectorXf& rsplit)
+float StaticSplitLexicase::gain(const VectorXf& lsplit, const VectorXf& rsplit)
 {
     float lscore, rscore, score;
     
