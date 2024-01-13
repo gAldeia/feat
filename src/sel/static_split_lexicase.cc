@@ -49,7 +49,8 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
     thresholds.resize(P);
     std::fill(thresholds.begin(), thresholds.end(), 0);
 
-    vector<float> split_thresholds(P);
+    // used to retrieve the split threshold used in each case (for logging)
+    vector<float> split_thresholds(N);
     std::fill(split_thresholds.begin(), split_thresholds.end(), 0);
     
     vector<size_t> cases; // cases (samples)
@@ -84,13 +85,13 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
     for (unsigned int i = 0; i<N; ++i)
     {
         VectorXf pop_error(P);
-        for (unsigned int j = 0; i<P; ++j)
+        for (unsigned int j = 0; j<P; ++j)
         {
             pop_error(j) = pop.individuals.at(j).error(cases[i]);
         }
 
         float split_threshold = find_threshold(pop_error);
-        for (unsigned int j = 0; i<P; ++j)
+        for (unsigned int j = 0; j<P; ++j)
         {
             fitness_within_eps(j, i) = 
                 pop.individuals.at(j).error(cases[i]) <= split_threshold;
