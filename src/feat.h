@@ -426,7 +426,7 @@ class Feat
 
         /* functions */
         /// updates best score
-        bool update_best(const DataRef& d, bool val=false);    
+        bool update_best(const DataRef& d, bool validation=false);    
         
         /// calculate and print stats
         void calculate_stats(const DataRef& d);
