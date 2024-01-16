@@ -712,12 +712,14 @@ void Feat::run_generation(unsigned int g,
     pop.update(survivors);
     logger.log("survivors:\n" + pop.print_eqns(), 3);
     
+    // we need to update best, so min_loss_v is updated inside stats
     logger.log("update best...",2);
     bool updated_best = update_best(d);
 
     if (params.max_stall > 0)
         update_stall_count(stall_count, updated_best);
 
+    logger.log("update objectives...",2);
     if ( (use_arch || params.verbosity>1) || !logfile.empty()) {
         // set objectives to make sure they are reported in log/verbose/arch
         #pragma omp parallel for
@@ -1300,25 +1302,23 @@ ArrayXXf Feat::predict_proba(MatrixXf& X)
 
 bool Feat::update_best(const DataRef& d, bool validation)
 {
-    float bs;
-    bs = this->min_loss_v; 
     float f; 
     vector<Individual>& pop_ref = (use_arch ? 
                                archive.individuals : this->pop.individuals); 
 
     bool updated = false; 
 
-    for (const auto& ind: pop_ref)
+    for (auto& ind: pop_ref)
     {
         if (!val_from_arch || ind.rank == 1)
         {
             f = ind.fitness_v;
-
-            if (f < bs 
-                || (f == bs && ind.get_complexity() < this->best_complexity)
-                )
+            if (f < this->min_loss_v 
+                || (f == this->min_loss_v 
+                    && ind.set_complexity() < this->best_complexity)
+               )
             {
-                bs = f;
+                this->min_loss_v = f; 
                 this->best_ind = ind; // should this be ind.clone(best_ind); ?
                 /* ind.clone(best_ind); */
                 this->best_complexity = ind.get_complexity();
@@ -1328,7 +1328,6 @@ bool Feat::update_best(const DataRef& d, bool validation)
         }
     }
     logger.log("current best model: " + this->get_eqn(), 2);
-    this->min_loss_v = bs; 
 
     return updated;
 }
@@ -1428,6 +1427,12 @@ void Feat::calculate_stats(const DataRef& d)
         thresholds_vector = dynamic_cast<SplitLexicase*>
                             (this->selector.pselector.get())->thresholds;
     }
+    else if (this->selector.get_type() == "static_split_lexicase") {
+        cases_vector = dynamic_cast<StaticSplitLexicase*>
+                        (this->selector.pselector.get())->n_cases_used;
+        thresholds_vector = dynamic_cast<StaticSplitLexicase*>
+                            (this->selector.pselector.get())->thresholds;
+    }
     else {
         std::fill(cases_vector.begin(), cases_vector.end(), 0);
         std::fill(thresholds_vector.begin(), thresholds_vector.end(), 0);
@@ -1456,6 +1461,7 @@ void Feat::calculate_stats(const DataRef& d)
     ArrayXf val_fitnesses(this->pop.individuals.size());
     for (unsigned i = 0; i < this->pop.individuals.size(); ++i)
         val_fitnesses(i) = this->pop.individuals.at(i).fitness_v;
+
     float med_loss_v = median(val_fitnesses); 
         /* fitnesses.push_back(pop.individuals.at(i).fitness); */
     /* int idx = argmiddle(fitnesses); */
@@ -1525,7 +1531,7 @@ void Feat::print_stats(std::ofstream& log, float fraction)
               << stats.min_loss.back() << " (" 
               << stats.med_loss.back() << ")\n"
               << "Val Loss (Med): " 
-              << this->min_loss_v << " (" << stats.med_loss_v.back() << ")\n"
+              << stats.min_loss_v.back() << " (" << stats.med_loss_v.back() << ")\n"
               << "Median Size (Max): " 
               << stats.med_size.back() << " (" << max_size << ")\n"
               << "Time (s): "   << timer << "\n";
@@ -1628,7 +1634,7 @@ void Feat::log_stats(std::ofstream& log)
     log << params.current_gen          << sep
         << timer.Elapsed().count()     << sep
         << stats.min_loss.back()       << sep
-        << this->min_loss_v            << sep
+        << stats.min_loss_v.back()     << sep
         << stats.med_loss.back()       << sep
         << stats.med_loss_v.back()     << sep
         << stats.med_size.back()       << sep
