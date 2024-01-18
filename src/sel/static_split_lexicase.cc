@@ -94,7 +94,7 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
         for (unsigned int j = 0; j<P; ++j)
         {
             fitness_within_eps(j, i) = 
-                pop.individuals.at(j).error(cases[i]) <= split_threshold;
+                pop.individuals.at(j).error(cases[i]) < split_threshold;
         }
         split_thresholds[cases[i]] = split_threshold;       
     }
