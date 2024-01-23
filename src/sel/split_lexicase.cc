@@ -115,8 +115,8 @@ vector<size_t> SplitLexicase::select(Population& pop,
 
             // handling when everyone is on the same side of the partition
             if (split_threshold==0 // numeric error inside `find_threshold`
-            || (split_threshold< min_error // no one would be selected
-            ||  split_threshold>=max_error) // everyone is selected
+            // || (split_threshold< min_error // no one would be selected
+            // ||  split_threshold>=max_error) // everyone is selected
             ) {
                 ++h;      // next case (this skip will be in the stats)
                 continue; // skip calculations
@@ -127,7 +127,7 @@ vector<size_t> SplitLexicase::select(Population& pop,
             // select best
             for (size_t j = 0; j<pool.size(); ++j)
                 if (pop.individuals.at(pool[j]).error(cases[h])
-                        < split_threshold) 
+                        <= split_threshold) 
                 {
                     winner.push_back(pool[j]);
                 }
@@ -185,6 +185,9 @@ float SplitLexicase::find_threshold(const ArrayXf& x)
     // set threshold according to the biggest reduction. 
     vector<float> s = unique(x);
     
+    if (s.size() <= 1)
+        return 0.0;
+
     vector<int> idx(x.size());
     std::iota(idx.begin(),idx.end(), 0);
     

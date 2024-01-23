@@ -94,7 +94,7 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
         for (unsigned int j = 0; j<P; ++j)
         {
             fitness_within_eps(j, i) = 
-                pop.individuals.at(j).error(cases[i]) < split_threshold;
+                pop.individuals.at(j).error(cases[i]) <= split_threshold;
         }
         split_thresholds[cases[i]] = split_threshold;       
     }
@@ -174,6 +174,9 @@ float StaticSplitLexicase::find_threshold(const ArrayXf& x)
     // set threshold according to the biggest reduction. 
     vector<float> s = unique(x);
     
+    if (s.size() <= 1)
+        return 0.0;
+
     vector<int> idx(x.size());
     std::iota(idx.begin(),idx.end(), 0);
     
