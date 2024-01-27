@@ -40,6 +40,8 @@ void Selection::set_operator()
         pselector = std::make_shared<SplitLexicase>(survival);
     else if (this->type == "static_split_lexicase")
         pselector = std::make_shared<StaticSplitLexicase>(survival);
+    else if (this->type == "semi_split_lexicase")
+        pselector = std::make_shared<SemiDynamicSplitLexicase>(survival);
     else if (this->type == "nsga2")
         pselector = std::make_shared<NSGA2>(survival);
     else if (this->type == "tournament")

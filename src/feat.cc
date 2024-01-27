@@ -1433,6 +1433,13 @@ void Feat::calculate_stats(const DataRef& d)
         thresholds_vector = dynamic_cast<StaticSplitLexicase*>
                             (this->selector.pselector.get())->thresholds;
     }
+    else if (this->selector.get_type() == "semi_split_lexicase") {
+        cases_vector = dynamic_cast<SemiDynamicSplitLexicase*>
+                        (this->selector.pselector.get())->n_cases_used;
+        thresholds_vector = dynamic_cast<SemiDynamicSplitLexicase*>
+                            (this->selector.pselector.get())->thresholds;
+    }
+    
     else {
         std::fill(cases_vector.begin(), cases_vector.end(), 0);
         std::fill(thresholds_vector.begin(), thresholds_vector.end(), 0);
