@@ -93,8 +93,10 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
         float split_threshold = find_threshold(pop_error);
         for (unsigned int j = 0; j<P; ++j)
         {
-            fitness_within_eps(j, i) = 
-                pop.individuals.at(j).error(cases[i]) <= split_threshold;
+            if (pop.individuals.at(j).error(cases[i]) <= split_threshold)
+                fitness_within_eps(j, i) = 0;
+            else
+                fitness_within_eps(j, i) = 1;
         }
         split_thresholds[cases[i]] = split_threshold;       
     }
@@ -112,10 +114,18 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
         while(pass){    // main loop
             // TODO: handle classification here?
             winner.resize(0);   // winners     
+               
+            // minimum error on case
+            float minfit = std::numeric_limits<float>::max();       
 
+            // get minimum
+            for (size_t j = 0; j<pool.size(); ++j)
+                if (fitness_within_eps(pool[j], cases[h]) < minfit) 
+                    minfit = pop.individuals.at(pool[j]).error(cases[h]);
+            
             // select best
             for (size_t j = 0; j<pool.size(); ++j)
-                if ( fitness_within_eps(pool[j], cases[h]) )
+                if ( fitness_within_eps(pool[j], cases[h])==minfit )
                 {
                     winner.push_back(pool[j]);
                 }
