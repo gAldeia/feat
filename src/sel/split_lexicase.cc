@@ -127,7 +127,7 @@ vector<size_t> SplitLexicase::select(Population& pop,
             // select best
             for (size_t j = 0; j<pool.size(); ++j)
                 if (pop.individuals.at(pool[j]).error(cases[h])
-                        <= split_threshold) 
+                        < split_threshold) 
                 {
                     winner.push_back(pool[j]);
                 }
