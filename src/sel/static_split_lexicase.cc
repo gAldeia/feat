@@ -53,32 +53,6 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
     vector<float> split_thresholds(N);
     std::fill(split_thresholds.begin(), split_thresholds.end(), 0);
     
-    vector<size_t> cases; // cases (samples)
-    if (params.classification && !params.class_weights.empty()) 
-    {
-        // for classification problems, weight case selection 
-        // by class weights
-        vector<size_t> choices(N);
-        std::iota(choices.begin(), choices.end(),0);
-        vector<float> sample_weights = params.sample_weights;
-        for (unsigned i = 0; i<N; ++i)
-        {
-            vector<size_t> choice_idxs(N-i);
-            std::iota(choice_idxs.begin(),choice_idxs.end(),0);
-            size_t idx = r.random_choice(choice_idxs,
-                    sample_weights);
-            cases.push_back(choices.at(idx));
-            choices.erase(choices.begin() + idx);
-            sample_weights.erase(sample_weights.begin() + idx);
-        }
-    }
-    else
-    {   // otherwise, choose cases randomly
-        cases.resize(N); 
-        std::iota(cases.begin(),cases.end(),0);
-        r.shuffle(cases.begin(),cases.end());   // shuffle cases
-    }
-
     // this is how we decide who's going to stay in the pool. matrix is
     // ind x test cases
     ArrayXb fitness_within_eps(P, N);
@@ -87,24 +61,50 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
         VectorXf pop_error(P);
         for (unsigned int j = 0; j<P; ++j)
         {
-            pop_error(j) = pop.individuals.at(j).error(cases[i]);
+            pop_error(j) = pop.individuals.at(j).error(i);
         }
 
         float split_threshold = find_threshold(pop_error);
         for (unsigned int j = 0; j<P; ++j)
         {
-            if (pop.individuals.at(j).error(cases[i]) <= split_threshold)
+            if (pop.individuals.at(j).error(i) <= split_threshold)
                 fitness_within_eps(j, i) = 0;
             else
                 fitness_within_eps(j, i) = 1;
         }
-        split_thresholds[cases[i]] = split_threshold;       
+        split_thresholds[i] = split_threshold;       
     }
 
     // selection loop
     #pragma omp parallel for 
     for (unsigned int i = 0; i<P; ++i)
     {
+        vector<size_t> cases; // cases (samples)
+        if (params.classification && !params.class_weights.empty()) 
+        {
+            // for classification problems, weight case selection 
+            // by class weights
+            vector<size_t> choices(N);
+            std::iota(choices.begin(), choices.end(),0);
+            vector<float> sample_weights = params.sample_weights;
+            for (unsigned i = 0; i<N; ++i)
+            {
+                vector<size_t> choice_idxs(N-i);
+                std::iota(choice_idxs.begin(),choice_idxs.end(),0);
+                size_t idx = r.random_choice(choice_idxs,
+                        sample_weights);
+                cases.push_back(choices.at(idx));
+                choices.erase(choices.begin() + idx);
+                sample_weights.erase(sample_weights.begin() + idx);
+            }
+        }
+        else
+        {   // otherwise, choose cases randomly
+            cases.resize(N); 
+            std::iota(cases.begin(),cases.end(),0);
+            r.shuffle(cases.begin(),cases.end());   // shuffle cases
+        }
+
         vector<size_t> pool = starting_pool;    // initial pool   
         vector<size_t> winner;                  // winners
     
@@ -121,7 +121,7 @@ vector<size_t> StaticSplitLexicase::select(Population& pop,
             // get minimum
             for (size_t j = 0; j<pool.size(); ++j)
                 if (fitness_within_eps(pool[j], cases[h]) < minfit) 
-                    minfit = pop.individuals.at(pool[j]).error(cases[h]);
+                    minfit = fitness_within_eps(pool[j], cases[h]);
             
             // select best
             for (size_t j = 0; j<pool.size(); ++j)
