@@ -31,6 +31,7 @@ struct Archive
     NSGA2 selector; ///< nsga2 selection operator for getting the front
 
     Archive();
+
     void set_objectives(vector<string> objectives);
     /// Sort population in increasing complexity.
     static bool sortComplexity(const Individual& lhs, 
@@ -49,8 +50,10 @@ struct Archive
     void update(const Population& pop, const Parameters& params);
    
 };
+
 //serialization
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Archive, individuals);
+
 } // Pop
 } // FT
 #endif
