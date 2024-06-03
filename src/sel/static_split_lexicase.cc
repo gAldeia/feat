@@ -187,6 +187,8 @@ float StaticSplitLexicase::find_threshold(const ArrayXf& x)
     if (s.size() <= 1)
         return 0.0;
 
+    sort(s.begin(), s.end()); 
+
     vector<int> idx(x.size());
     std::iota(idx.begin(),idx.end(), 0);
     

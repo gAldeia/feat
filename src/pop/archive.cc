@@ -17,8 +17,6 @@ namespace FT{
             this->sort_complexity = in(objectives,std::string("complexity"));
         }
 
-
-        
         bool Archive::sortComplexity(const Individual& lhs, 
                 const Individual& rhs)
         {

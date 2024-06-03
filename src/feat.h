@@ -381,7 +381,7 @@ class Feat
         /// load best_ind from file
         void load_best_ind(string filename);
 
-        /// load population from file, optionall just Pareto front
+        /// load population from file, optional just Pareto front
         void load_population(string filename, bool justfront=false);
 
         /// load Feat state from a json string.
